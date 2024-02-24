@@ -16,14 +16,14 @@ class MainActivity : AppCompatActivity() {
     private val usersService: UsersService
         get() = (applicationContext as App).usersService
 
-    private lateinit var adapter: UsersAdapter
+    private lateinit var adapter: UsersAdapterDiff
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater).also { setContentView(it.root) }
 
 
-        adapter = UsersAdapter(object: ActionsUsers {
+        adapter = UsersAdapterDiff(object: ActionsUsers {
             override fun moveUp(user: User, moveBy: Int) {
                 usersService.moveUser(user, moveBy)
             }
@@ -40,6 +40,10 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, user.name,Toast.LENGTH_SHORT).show()
             }
 
+            override fun fireUser(user: User) {
+                usersService.fireUser(user)
+            }
+
         })
 
         val layoutManager = LinearLayoutManager(this)
@@ -47,7 +51,6 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = adapter
 
         usersService.addListener(usersListener)
-
     }
 
 
@@ -60,7 +63,6 @@ class MainActivity : AppCompatActivity() {
     private val usersListener: UsersListener = {
         adapter.users = it
     }
-
 
 
 

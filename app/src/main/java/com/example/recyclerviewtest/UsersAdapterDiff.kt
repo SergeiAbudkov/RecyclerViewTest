@@ -1,18 +1,15 @@
 package com.example.recyclerviewtest
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.PopupMenu
-import androidx.core.widget.PopupMenuCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.recyclerviewtest.databinding.ItemUserBinding
 import com.example.recyclerviewtest.model.User
-import kotlin.io.path.fileVisitor
 
 interface ActionsUsers {
 
@@ -24,11 +21,13 @@ interface ActionsUsers {
 
     fun userDetails(user: User)
 
+    fun fireUser(user: User)
+
 }
 
-class UsersAdapter(
+class UsersAdapterDiff(
     private val actionsUsers: ActionsUsers
-) : RecyclerView.Adapter<UsersAdapter.UsersViewHolder>(), View.OnClickListener {
+) : ListAdapter<User,UsersAdapterDiff.UsersViewHolder>(DiffCallback()), View.OnClickListener {
 
     var users: List<User> = emptyList()
         set(value) {
@@ -67,7 +66,6 @@ class UsersAdapter(
 
     override fun onBindViewHolder(holder: UsersViewHolder, position: Int) {
         val user = users[position]
-        val context = holder.itemView.context
 
         with(holder.binding) {
             holder.itemView.tag = user
@@ -99,6 +97,7 @@ class UsersAdapter(
             isEnabled = position < users.size - 1
         }
         popupMenu.menu.add(0, USER_DELETE, Menu.NONE, context.getString(R.string.remove))
+        popupMenu.menu.add(0, USER_FIRE, Menu.NONE, context.getString(R.string.fire))
 
         popupMenu.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -113,6 +112,9 @@ class UsersAdapter(
                 USER_DELETE -> {
                     actionsUsers.deleteUser(user)
                 }
+                USER_FIRE -> {
+                    actionsUsers.fireUser(user)
+                }
             }
             return@setOnMenuItemClickListener true
         }
@@ -121,11 +123,27 @@ class UsersAdapter(
         popupMenu.show()
     }
 
+    class DiffCallback: DiffUtil.ItemCallback<User>() {
+        override fun areItemsTheSame(oldItem: User, newItem: User): Boolean {
+            return oldItem == newItem
+        }
+
+        override fun areContentsTheSame(oldItem: User, newItem: User): Boolean {
+            return oldItem == newItem
+        }
+
+    }
+
+
     companion object {
 
         const val MOVE_UP = 1
         const val MOVE_DOWN = 2
         const val USER_DELETE = 3
+        const val USER_FIRE = 4
     }
+
+
+
 
 }

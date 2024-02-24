@@ -1,5 +1,6 @@
 package com.example.recyclerviewtest.model
 
+import com.example.recyclerviewtest.R
 import com.github.javafaker.Faker
 import java.util.Collections
 
@@ -26,7 +27,7 @@ class UsersService {
 
     fun removeUser(user: User) {
         val indexUser = users.indexOfFirst { it.id == user.id }
-        if (indexUser == -1) {
+        if (indexUser != -1) {
             users.removeAt(indexUser)
             notifyChange()
         }
@@ -41,6 +42,15 @@ class UsersService {
         notifyChange()
     }
 
+    fun fireUser(user: User) {
+        val userIndex = users.indexOfFirst { it.id == user.id }
+        if (userIndex == -1) return
+        val newUser = users[userIndex].copy(company = "[ Уволен!! ]")
+        users[userIndex] = newUser
+        notifyChange()
+
+    }
+
     fun addListener(listener: UsersListener) {
         listeners.add(listener)
         listener.invoke(users)
@@ -49,6 +59,7 @@ class UsersService {
     fun removeListener(listener: UsersListener) {
         listeners.remove(listener)
     }
+
 
     private fun notifyChange() {
         listeners.forEach {
