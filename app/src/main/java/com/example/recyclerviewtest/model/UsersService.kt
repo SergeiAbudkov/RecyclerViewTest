@@ -1,6 +1,5 @@
 package com.example.recyclerviewtest.model
 
-import com.example.recyclerviewtest.R
 import com.github.javafaker.Faker
 import java.util.Collections
 
@@ -8,47 +7,47 @@ typealias UsersListener = (users: List<User>) -> Unit
 
 class UsersService {
 
-
     private var users = mutableListOf<User>()
 
     private val listeners = mutableSetOf<UsersListener>()
 
     init {
         val faker = Faker.instance()
-        users = (0..100).map {
-            User(
-                id = it.toLong(),
-                photo = IMAGES[it % IMAGES.size],
-                name = faker.name().name(),
-                company = faker.company().name()
-            )
-        }.toMutableList()
+        IMAGES.shuffle()
+        users = (1..100).map { User(
+            id = it.toLong(),
+            name = faker.name().name(),
+            company = faker.company().name(),
+            photo = IMAGES[it % IMAGES.size]
+        ) }.toMutableList()
     }
 
-    fun removeUser(user: User) {
-        val indexUser = users.indexOfFirst { it.id == user.id }
-        if (indexUser != -1) {
-            users.removeAt(indexUser)
-            notifyChange()
+    fun deleteUser(user: User) {
+        val indexToDelete = findIndexById(user.id)
+        if (indexToDelete != -1) {
+            users = ArrayList(users)
+            users.removeAt(indexToDelete)
+            notifyChanges()
         }
     }
 
     fun moveUser(user: User, moveBy: Int) {
-        val oldIndex = users.indexOfFirst { it.id == user.id }
+        val oldIndex = findIndexById(user.id)
         if (oldIndex == -1) return
         val newIndex = oldIndex + moveBy
-        if (newIndex < 0 || newIndex > users.size) return
+        if (newIndex < 0 || newIndex >= users.size) return
+        users = ArrayList(users)
         Collections.swap(users, oldIndex, newIndex)
-        notifyChange()
+        notifyChanges()
     }
 
     fun fireUser(user: User) {
-        val userIndex = users.indexOfFirst { it.id == user.id }
-        if (userIndex == -1) return
-        val newUser = users[userIndex].copy(company = "[ Уволен!! ]")
-        users[userIndex] = newUser
-        notifyChange()
-
+        val index = findIndexById(user.id)
+        if (index == -1) return
+        val updatedUser = users[index].copy(company = "")
+        users = ArrayList(users)
+        users[index] = updatedUser
+        notifyChanges()
     }
 
     fun addListener(listener: UsersListener) {
@@ -60,13 +59,11 @@ class UsersService {
         listeners.remove(listener)
     }
 
-
-    private fun notifyChange() {
-        listeners.forEach {
-            it.invoke(users)
-        }
+    private fun notifyChanges() {
+        listeners.forEach { it.invoke(users) }
     }
 
+    private fun findIndexById(userId: Long): Int = users.indexOfFirst { it.id == userId }
 
     companion object {
         private val IMAGES = mutableListOf(
@@ -82,5 +79,4 @@ class UsersService {
             "https://images.unsplash.com/photo-1546456073-92b9f0a8d413?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=600&ixid=MnwxfDB8MXxyYW5kb218fHx8fHx8fHwxNjI0MDE0ODY1&ixlib=rb-1.2.1&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=800"
         )
     }
-
 }

@@ -3,6 +3,7 @@ package com.example.recyclerviewtest
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.recyclerviewtest.databinding.ActivityMainBinding
 import com.example.recyclerviewtest.model.User
@@ -16,31 +17,29 @@ class MainActivity : AppCompatActivity() {
     private val usersService: UsersService
         get() = (applicationContext as App).usersService
 
-    private lateinit var adapter: UsersAdapterDiff
+    private lateinit var adapter: UsersAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater).also { setContentView(it.root) }
 
 
-        adapter = UsersAdapterDiff(object: ActionsUsers {
-            override fun moveUp(user: User, moveBy: Int) {
-                usersService.moveUser(user, moveBy)
-            }
+        adapter = UsersAdapter(object: UserActionListener {
 
-            override fun moveDown(user: User, moveBy: Int) {
+            override fun moveUser(user: User, moveBy: Int) {
                 usersService.moveUser(user, moveBy)
+
             }
 
             override fun deleteUser(user: User) {
-                usersService.removeUser(user)
+                usersService.deleteUser(user)
             }
 
             override fun userDetails(user: User) {
                 Toast.makeText(this@MainActivity, user.name,Toast.LENGTH_SHORT).show()
             }
 
-            override fun fireUser(user: User) {
+            override fun onUserFire(user: User) {
                 usersService.fireUser(user)
             }
 
@@ -49,6 +48,11 @@ class MainActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(this)
         binding.recyclerView.layoutManager = layoutManager
         binding.recyclerView.adapter = adapter
+
+        val itemAnimator = binding.recyclerView.itemAnimator
+        if (itemAnimator is DefaultItemAnimator) {
+            itemAnimator.supportsChangeAnimations = false
+        }
 
         usersService.addListener(usersListener)
     }
